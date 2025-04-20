@@ -117,26 +117,33 @@ fun StreamerEditScreen(
                     }
                 }
             )
-            OutlinedTextField(
-                value = item.url,
-                onValueChange = { item = item.copy(url = it) },
-                label = { RequiredText(string = "URL") },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(R.string.streamer_url_placeholder), color = Color.LightGray) },
-                trailingIcon = {
-                    if (item.url.isNotBlank() && isNew) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "clear text",
-                            modifier = Modifier
-                                .clickable {
-                                    item = item.copy(url = "")
-                                }
-                        )
-                    }
-                },
-                enabled = isNew
-            )
+            Column {
+                OutlinedTextField(
+                    value = item.url,
+                    onValueChange = { item = item.copy(url = it) },
+                    label = { RequiredText(string = "URL") },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.streamer_url_placeholder), color = Color.LightGray) },
+                    trailingIcon = {
+                        if (item.url.isNotBlank() && isNew) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "clear text",
+                                modifier = Modifier
+                                    .clickable {
+                                        item = item.copy(url = "")
+                                    }
+                            )
+                        }
+                    },
+                    enabled = isNew
+                )
+                Text(
+                    text = stringResource(R.string.streamer_url_info),
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
+            }
 
             Column {
                 DropdownSelector(

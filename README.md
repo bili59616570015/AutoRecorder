@@ -11,11 +11,11 @@ Android 10以上
 * 需要连接ADB（有一定难度），连接录制，设置主播，才能开启巡逻。
 * 可以设置B站上传模版，如果不设置则仅录屏不上传。录制视频在/Movies/AutoRecorder/AutoRecorder_files/下面，可以自己手动用官方app进行上传。
 * 锁屏时无法录屏，可以在进阶设置设置唤醒屏幕（需预设无密码）。
+* 菜单>上传可看到上传进度。如果中断了可以按按钮继续上传。
 https://github.com/bili59616570015/AutoRecorder/releases/download/1.0/app-release-1.0.apk
 
 ## 叠甲
 * 只测试了Android10和Android11
-* 上传模版没有怎么测试，有可能有些项目设置了也没用
 * Android15有可能只能检测直播间状态6小时
 * 有可能崩溃导致录屏不成功
 * 手机卡顿时录屏好像会导致音画不同步

@@ -185,11 +185,11 @@ class LiveService : Service() {
             SharedPreferencesHelper.startCommand.adbCommands().forEach {
                 adbRepository.execute(it)
             }
-            delay(2000L)
+            delay(3000L)
         }
         val url = "snssdk1128://live?room_id=${room.roomId}&user_id=${room.userId}&u_code=0&from=webview&refer=web"
         adbRepository.execute("am start -a android.intent.action.VIEW -d '$url'")
-        delay(1000L)
+        delay(5000L)
         adbRepository.disconnect()
     }
 

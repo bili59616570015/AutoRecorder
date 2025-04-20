@@ -1,5 +1,6 @@
 package com.example.autorecorder.api.bili
 
+import android.sun.security.BuildConfig
 import com.example.autorecorder.common.Utils
 import com.example.autorecorder.entity.AddVideoRequest
 import com.example.autorecorder.entity.BiliAddResponse
@@ -204,7 +205,11 @@ class BilibiliRepository {
             }
             install(Logging) {
                 logger = CustomHttpLogger()
-                level = LogLevel.HEADERS
+                level = if (BuildConfig.DEBUG) {
+                    LogLevel.HEADERS
+                } else {
+                    LogLevel.NONE
+                }
             }
             engine {
                 preconfigured = BilibiliHttpClient.uploadClient // 复用预配置的客户端

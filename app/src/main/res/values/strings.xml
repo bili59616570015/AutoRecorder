@@ -55,6 +55,7 @@
     <string name="menu">菜单</string>
     <string name="streamer">主播</string>
     <string name="streamer_url_placeholder">https://live.douyin.com/123456789012</string>
+    <string name="streamer_url_info">电脑网页打开抖音直播间的URL(11,12位左右的数字)</string>
 
     <string name="template">模板</string>
     <string name="template_info">不添加模版则仅录制不上传</string>

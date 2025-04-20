@@ -1,0 +1,97 @@
+<resources>
+    <string name="app_name">自动录屏</string>
+    <string name="edit">编辑</string>
+    <string name="add">添加</string>
+    <string name="name">名称</string>
+    <string name="title">标题</string>
+    <string name="description">简介</string>
+    <string name="connected">已连接</string>
+    <string name="disconnected">已断开</string>
+    <string name="auto">自动</string>
+    <string name="loading">加载中</string>
+    <string name="uploading">上传中</string>
+    <string name="on">开</string>
+    <string name="off">关</string>
+    <string name="error">错误</string>
+    <string name="save">保存</string>
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="delete_message">确定要删除 %s 吗？</string>
+
+    <string name="service">服务</string>
+    <string name="exit">退出</string>
+    <string name="running">运行中</string>
+    <string name="pending">等待中</string>
+    <string name="live_service">巡逻</string>
+    <string name="record_service">录屏</string>
+    <string name="upload_service">上传</string>
+
+    <string name="home">首页</string>
+    <string name="adb">ADB</string>
+    <string name="pair">配对</string>
+    <string name="port">调试端口</string>
+    <string name="start_command_info">录制前处理</string>
+    <string name="end_command_info">录制后处理</string>
+    <string name="command_placeholder">adb shell input tap 100 100</string>
+    <string name="start_command">开始指令</string>
+    <string name="end_command">结束指令</string>
+    <string name="test_command">测试指令</string>
+    <string name="unlock_screen_command_label">唤醒屏幕</string>
+    <string name="unlock_screen_command">adb shell input keyevent KEYCODE_WAKEUP\nadb shell input swipe 500 1000 500 500</string>
+    <string name="adb_advanced">进阶设置</string>
+    <string name="adb_description">用于打开直播间(请在系统>开发者选项中开启USB调试、无线调试)\n如果无法连接ADB，请点击上方齿轮</string>
+    <string name="adb_description_2">1.点击配对\n2.打开系统>开发者选项>无线调试>使用配对码配对设备,记录配对码、配对端口、调试端口\n3.打开通知栏填入配对码(Code),配对端口(Port)\n4.填写下方调试端口\n5.回到主页连接ADB\n※调试端口在设备重启后会改变，需重新填写。</string>
+    <string name="record_description">准备录制服务（尚未开始录制）</string>
+    <string name="record_message">更改录制设置将停止录制，是否要保存更改？</string>
+    <string name="cdn">上传CDN</string>
+    <string name="start_fetch">开启</string>
+    <string name="start_info">推荐充电使用</string>
+    <string name="stop_fetch">停止</string>
+    <string name="require_adb">请先连接ADB</string>
+    <string name="require_record">请先连接录制</string>
+    <string name="require_streamer">请先选择主播</string>
+
+    <string name="menu">菜单</string>
+    <string name="streamer">主播</string>
+    <string name="streamer_url_placeholder">https://live.douyin.com/123456789012</string>
+
+    <string name="template">模板</string>
+    <string name="template_info">不添加模版则仅录制不上传</string>
+    <string name="tag">标签</string>
+    <string name="tag_placeholder">直播,记录</string>
+    <string name="tag_info">复数标签请用,分开</string>
+    <string name="main_tid">主分区</string>
+    <string name="sub_tid">子分区</string>
+    <string name="source_url">来源URL</string>
+    <string name="is_public">公开</string>
+    <string name="is_private">私有</string>
+    <string name="watermark_1">有水印</string>
+    <string name="watermark_0">无水印</string>
+    <string name="copyright_info">※转载稿件有可能导致撞车判定</string>
+
+    <string name="up">UP主</string>
+    <string name="qr">二维码</string>
+    <string name="qr_information">1. 打开哔哩哔哩APP扫描二维码\n2. 点击下方按钮保存登录信息</string>
+    <string name="qr_save">保存登录信息</string>
+
+    <string name="upload">上传</string>
+
+    <string name="record">录制</string>
+    <string name="record_settings">录制设置</string>
+    <string name="record_folder">导出文件夹:\n/Movies/AutoRecorder/AutoRecorder_files/</string>
+    <string name="backup">备份</string>
+    <string name="backup_info">上传完成后，备份开启时会将视频移至录制>备份文件夹，备份关闭时会删除视频。</string>
+    <string name="volume_info">友情提示：关闭音量也会录制声音哦</string>
+    <string name="quality">画质</string>
+    <string name="bitrate">比特率</string>
+    <string name="frame_rate">帧率</string>
+
+    <string name="license">开源库</string>
+
+    <string name="terms">免责声明</string>
+    <string name="report">报告问题</string>
+    <string name="report_description">(不一定维护)</string>
+    <string name="report_url">https://github.com</string>
+
+</resources>

@@ -1,0 +1,100 @@
+[
+  {
+    "name": "AndroidX Core KTX",
+    "artifactId": "androidx.core:core-ktx",
+    "version": "1.12.0",
+    "license": "Apache-2.0",
+    "url": "https://developer.android.com/jetpack/androidx/releases/core"
+  },
+  {
+    "name": "AndroidX Lifecycle Runtime KTX",
+    "artifactId": "androidx.lifecycle:lifecycle-runtime-ktx",
+    "version": "2.6.2",
+    "license": "Apache-2.0",
+    "url": "https://developer.android.com/jetpack/androidx/releases/lifecycle"
+  },
+  {
+    "name": "AndroidX Compose BOM",
+    "artifactId": "androidx.compose:compose-bom",
+    "version": "2023.10.01",
+    "license": "Apache-2.0",
+    "url": "https://developer.android.com/jetpack/compose"
+  },
+  {
+    "name": "Retrofit",
+    "artifactId": "com.squareup.retrofit2:retrofit",
+    "version": "2.9.0",
+    "license": "Apache-2.0",
+    "url": "https://github.com/square/retrofit"
+  },
+  {
+    "name": "Gson Converter",
+    "artifactId": "com.squareup.retrofit2:converter-gson",
+    "version": "2.9.0",
+    "license": "Apache-2.0",
+    "url": "https://github.com/square/retrofit"
+  },
+  {
+    "name": "OkHttp",
+    "artifactId": "com.squareup.okhttp3:okhttp",
+    "version": "4.11.0",
+    "license": "Apache-2.0",
+    "url": "https://github.com/square/okhttp"
+  },
+  {
+    "name": "OkHttp Logging Interceptor",
+    "artifactId": "com.squareup.okhttp3:logging-interceptor",
+    "version": "4.11.0",
+    "license": "Apache-2.0",
+    "url": "https://github.com/square/okhttp"
+  },
+  {
+    "name": "ZXing",
+    "artifactId": "com.google.zxing:core",
+    "version": "3.5.2",
+    "license": "Apache-2.0",
+    "url": "https://github.com/zxing/zxing"
+  },
+  {
+    "name": "Kotlin Serialization JSON",
+    "artifactId": "org.jetbrains.kotlinx:kotlinx-serialization-json",
+    "version": "1.6.0",
+    "license": "Apache-2.0",
+    "url": "https://github.com/Kotlin/kotlinx.serialization"
+  },
+  {
+    "name": "Ktor Client Core",
+    "artifactId": "io.ktor:ktor-client-core",
+    "version": "2.3.5",
+    "license": "Apache-2.0",
+    "url": "https://github.com/ktorio/ktor"
+  },
+  {
+    "name": "Room Runtime",
+    "artifactId": "androidx.room:room-runtime",
+    "version": "2.6.0",
+    "license": "Apache-2.0",
+    "url": "https://developer.android.com/jetpack/androidx/releases/room"
+  },
+  {
+    "name": "libadb-android",
+    "artifactId": "com.github.MuntashirAkon:libadb-android",
+    "version": "3.0.0",
+    "license": "Apache-2.0",
+    "url": "https://github.com/MuntashirAkon/libadb-android"
+  },
+  {
+    "name": "Conscrypt Android",
+    "artifactId": "org.conscrypt:conscrypt-android",
+    "version": "2.5.2",
+    "license": "Apache-2.0",
+    "url": "https://github.com/google/conscrypt"
+  },
+  {
+    "name": "sun-security-android",
+    "artifactId": "com.github.MuntashirAkon:sun-security-android",
+    "version": "1.1",
+    "license": "GPL-2.0",
+    "url": "https://github.com/MuntashirAkon/sun-security-android"
+  }
+]

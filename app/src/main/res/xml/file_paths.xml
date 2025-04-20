@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+   Sample data extraction rules file; uncomment and customize as necessary.
+   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
+   for details.
+-->
+<paths>
+    <external-path name="AutoRecorder" path="Movies/AutoRecorder"/>
+<!--    <external-path-->
+<!--        name="external_storage_root"-->
+<!--        path="." />-->
+<!--    <external-path-->
+<!--        name="external_path"-->
+<!--        path="." />-->
+<!--    &lt;!&ndash;/storage/emulated/0/Android/data/${applicationId}/files/apk/&ndash;&gt;-->
+<!--    <external-files-path-->
+<!--        name="external_files_path"-->
+<!--        path="." />-->
+<!--    <files-path-->
+<!--        name="files"-->
+<!--        path="." />-->
+</paths>

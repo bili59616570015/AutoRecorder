@@ -5,7 +5,7 @@
 Android 10以上
 
 ## 思路
-参考[Biliup](https://github.com/biliup/biliup-app)检测抖音直播间状态，使用[ADB库](https://github.com/MuntashirAkon/libadb-android)打开直播间，结束录屏后参考Biliup上传视频致B站
+参考[Biliup](https://github.com/biliup/biliup)检测抖音直播间状态，使用[ADB库](https://github.com/MuntashirAkon/libadb-android)打开直播间，结束录屏后参考Biliup上传视频致B站
 
 ## 使用方法
 * 需要连接ADB（有一定难度），连接录制，设置主播，才能开启巡逻。
@@ -17,6 +17,7 @@ Android 10以上
 * 上传模版没有怎么测试，有可能有些项目设置了也没用
 * Android15有可能只能检测直播间状态6小时
 * 有可能崩溃导致录屏不成功
+* 手机卡顿时录屏好像会导致音画不同步
 * 好像只能录竖屏
 * 长时间使用可能导致设备寿命快速缩短
 * 本项目仅供学习交流使用，低调使用比较好，如果官方API改变有可能不能用

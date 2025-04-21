@@ -1,6 +1,5 @@
 package com.example.autorecorder.screen.adb
 
-import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -169,8 +168,11 @@ fun AdbScreen(
                         OutlinedButton(
                             modifier = Modifier.padding(top = 8.dp),
                             onClick = {
-                                startCommand = context.getString(R.string.unlock_screen_command)
-                                SharedPreferencesHelper.startCommand = startCommand
+                                val command = context.getString(R.string.unlock_screen_command)
+                                if (!startCommand.contains(command)) {
+                                    startCommand = (listOf(command) + startCommand.split("\n")).filter { it.isNotEmpty() }.joinToString("\n")
+                                    SharedPreferencesHelper.startCommand = startCommand
+                                }
                             },
                         ) {
                             Text(stringResource(R.string.unlock_screen_command_label))

@@ -1,6 +1,7 @@
 package com.example.autorecorder.api.bili
 
 import android.util.Log
+import com.example.autorecorder.BuildConfig
 import com.example.autorecorder.common.SharedPreferencesHelper
 import com.example.autorecorder.entity.BiliErrorResponse
 import com.google.gson.FieldNamingPolicy
@@ -14,7 +15,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
-import org.conscrypt.BuildConfig
 import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

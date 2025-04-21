@@ -111,10 +111,10 @@ object UploadViewModel: ViewModel() {
 
     fun cancelUpload(planId: String) {
         viewModelScope.launch {
-            val map = _runningFlow.value
-            map[planId]?.first?.cancel()
-            map.remove(planId)
-            _runningFlow.value = map
+            _runningFlow.value = _runningFlow.value.toMutableMap().apply {
+                this[planId]?.first?.cancel()
+                remove(planId)
+            }
         }
     }
 
@@ -130,19 +130,19 @@ object UploadViewModel: ViewModel() {
 
     fun removeUpload(planId: String) {
         viewModelScope.launch {
-            val map = _runningFlow.value
-            map.remove(planId)
-            _runningFlow.value = map
+            _runningFlow.value = _runningFlow.value.toMutableMap().apply {
+                remove(planId)
+            }
         }
     }
 
     fun upsertUpload(planId: String, job: Job, notificationId: Int) {
         viewModelScope.launch {
-            val map = _runningFlow.value
-            map[planId]?.first?.cancel()
-            map.remove(planId)
-            map[planId] = Pair(job, notificationId)
-            _runningFlow.value = map
+            _runningFlow.value = _runningFlow.value.toMutableMap().apply {
+                this[planId]?.first?.cancel()
+                remove(planId)
+                this[planId] = Pair(job, notificationId)
+            }
         }
     }
 

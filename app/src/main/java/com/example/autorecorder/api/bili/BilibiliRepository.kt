@@ -1,6 +1,6 @@
 package com.example.autorecorder.api.bili
 
-import android.sun.security.BuildConfig
+import com.example.autorecorder.BuildConfig
 import com.example.autorecorder.common.Utils
 import com.example.autorecorder.entity.AddVideoRequest
 import com.example.autorecorder.entity.BiliAddResponse

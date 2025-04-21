@@ -138,13 +138,17 @@ class BilibiliUseCase {
         val tasks = taskRepository.getItems(listOf(plan.id))
         tasks.map { item ->
             val partResponse = tryUploadStream(item)
-            repository.endUpload(
-                item.copy(
-                    partNumbers = partResponse.mapNotNull {
-                        it.getOrNull()?.partNumber
-                    }
+            try {
+                repository.endUpload(
+                    item.copy(
+                        partNumbers = partResponse.mapNotNull {
+                            it.getOrNull()?.partNumber
+                        }
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                // maybe already called endUpload
+            }
             VideoInfo(
                 title = item.fileName.substringBeforeLast("."),
                 filename = item.path.substringAfter("/").substringBeforeLast(".")

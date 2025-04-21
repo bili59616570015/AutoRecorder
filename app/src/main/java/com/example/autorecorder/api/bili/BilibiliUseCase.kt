@@ -1,5 +1,6 @@
 package com.example.autorecorder.api.bili
 
+import com.example.autorecorder.BuildConfig
 import com.example.autorecorder.common.SharedPreferencesHelper
 import com.example.autorecorder.common.UpCdn
 import com.example.autorecorder.common.Utils
@@ -23,6 +24,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 import java.time.Instant
 import java.util.Date
 import kotlin.math.ceil
@@ -37,60 +39,66 @@ class BilibiliUseCase {
         item: Plan
     ) {
         var plan = item.copy(errorMessage = "")
-        try {
-            val template = templateRepository.getItem(plan.templateTitle) ?: throw Exception("Template not found")
-            val cookie = getValidCookie(template.mid)
-            if (plan.status < PlanStatus.PRELOADED) {
-                taskRepository.deleteItem(listOf(plan.id))
-                preload(plan, cookie, template)
-                plan = upsert(plan.copy(status = PlanStatus.PRELOADED))
-                UploadViewModel.updatePlans(plan)
-            }
-            if (plan.status < PlanStatus.UPLOADED) {
-                uploadStream(plan)
-                plan = upsert(plan.copy(status = PlanStatus.UPLOADED))
-                UploadViewModel.updatePlans(plan)
-            }
-            if (plan.status < PlanStatus.POSTED) {
-                val tasks = taskRepository.getItems(listOf(plan.id))
-                val list = tasks.map { task ->
-                    VideoInfo(
-                        title = task.fileName.substringBeforeLast("."),
-                        filename = task.path.substringAfter("/").substringBeforeLast(".")
-                    )
-                }
-                val date = Utils.getFileCreationDate(tasks.first().file) ?: Date()
-                val addResponse = repository.addVideo(
-                    videos = list,
-                    cookie = cookie,
-                    template = template,
-                    date = date
-                )
-                plan = upsert(
-                    plan.copy(
-                        status = PlanStatus.POSTED,
-                        bvid = addResponse.data.bvid
-                    )
-                )
-                UploadViewModel.updatePlans(plan)
-            }
+        retry(3) {
             try {
-                val tasks = taskRepository.getItems(listOf(plan.id))
-                val needBackup = SharedPreferencesHelper.needBackupVideo
-                tasks.forEach { task ->
-                    if (needBackup) {
-                        Utils.moveToBackup(task.file)
-                    } else {
-                        Utils.deleteFile(task.file)
-                    }
+                val template = templateRepository.getItem(plan.templateTitle)
+                    ?: throw Exception("Template not found")
+                val cookie = getValidCookie(template.mid)
+                if (plan.status < PlanStatus.PRELOADED) {
+                    taskRepository.deleteItem(listOf(plan.id))
+                    preload(plan, cookie, template)
+                    plan = upsert(plan.copy(status = PlanStatus.PRELOADED))
+                    UploadViewModel.updatePlans(plan)
                 }
-                Utils.scanFolder()
-            } catch (_: Exception) {
+                if (plan.status < PlanStatus.UPLOADED) {
+                    uploadStream(plan)
+                    plan = upsert(plan.copy(status = PlanStatus.UPLOADED))
+                    UploadViewModel.updatePlans(plan)
+                }
+                if (plan.status < PlanStatus.POSTED) {
+                    val tasks = taskRepository.getItems(listOf(plan.id))
+                    val list = tasks.map { task ->
+                        VideoInfo(
+                            title = task.fileName.substringBeforeLast("."),
+                            filename = task.path.substringAfter("/").substringBeforeLast(".")
+                        )
+                    }
+                    val date = Utils.getFileCreationDate(tasks.first().file) ?: Date()
+                    val addResponse = repository.addVideo(
+                        videos = list,
+                        cookie = cookie,
+                        template = template,
+                        date = date
+                    )
+                    plan = upsert(
+                        plan.copy(
+                            status = PlanStatus.POSTED,
+                            bvid = addResponse.data.bvid
+                        )
+                    )
+                    UploadViewModel.updatePlans(plan)
+                }
+                try {
+                    val tasks = taskRepository.getItems(listOf(plan.id))
+                    val needBackup = SharedPreferencesHelper.needBackupVideo
+                    tasks.forEach { task ->
+                        if (needBackup) {
+                            Utils.moveToBackup(task.file)
+                        } else {
+                            Utils.deleteFile(task.file)
+                        }
+                    }
+                    Utils.scanFolder()
+                } catch (_: Exception) {
+                }
+                Result.success("Upload success")
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        } catch (e: Exception) {
+        }.onFailure {
             plan = upsert(
                 plan.copy(
-                    errorMessage = e.localizedMessage ?: "Unknown error"
+                    errorMessage = it.localizedMessage ?: "Unknown error"
                 )
             )
             UploadViewModel.updatePlans(plan)
@@ -146,8 +154,12 @@ class BilibiliUseCase {
                         }
                     )
                 )
-            } catch (e: Exception) {
-                // maybe already called endUpload
+            } catch (e: HttpException) {
+                if (e.code() == 400) {
+                    // maybe already called endUpload
+                } else {
+                    throw e
+                }
             }
             VideoInfo(
                 title = item.fileName.substringBeforeLast("."),
@@ -174,10 +186,14 @@ class BilibiliUseCase {
                 val currentIndex = index
                 val start = index * task.chunkSize
                 val end = minOf(start + task.chunkSize, totalSize)
-                println("Processing part ${currentIndex + 1} of ${task.chunksNum} ($start-$end) / $totalSize")
+                if (BuildConfig.DEBUG) {
+                    println("Processing part ${currentIndex + 1} of ${task.chunksNum} ($start-$end) / $totalSize")
+                }
                 val deferred = async {
                     if (task.partNumbers.contains(currentIndex + 1)) {
-                        println("Skipping part ${currentIndex + 1}")
+                        if (BuildConfig.DEBUG) {
+                            println("Skipping part ${currentIndex + 1}")
+                        }
                         semaphore.release()
                         return@async true
                     }
@@ -198,7 +214,9 @@ class BilibiliUseCase {
                         UploadViewModel.updateTasks(newTask)
                         true
                     } catch (e: Exception) {
-                        println(e.localizedMessage)
+                        if (BuildConfig.DEBUG) {
+                            println(e.localizedMessage)
+                        }
                         false
                     } finally {
                         semaphore.release()

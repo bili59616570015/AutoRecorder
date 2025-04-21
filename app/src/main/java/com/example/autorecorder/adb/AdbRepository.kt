@@ -28,7 +28,6 @@ class AdbRepository{
                 }
             }
         } catch (e: Exception) {
-            println(e.message)
         }
     }
 
@@ -36,7 +35,7 @@ class AdbRepository{
         try {
             AdbConnectionManager.resetInstance()
         } catch (th: Throwable) {
-            println(th.message)
+
         }
     }
 
@@ -44,7 +43,6 @@ class AdbRepository{
         try {
             manager.connect(ip, port)
         } catch (th: Throwable) {
-            println(th.message)
             false
         }
     }
@@ -53,7 +51,6 @@ class AdbRepository{
         try {
             return@withContext manager.pair(port, code)
         } catch (th: Throwable) {
-            println(th.message)
             return@withContext false
         }
     }
@@ -62,7 +59,6 @@ class AdbRepository{
         try {
             manager.disconnect()
         } catch (th: Throwable) {
-            println(th.message)
         }
     }
 
@@ -70,7 +66,6 @@ class AdbRepository{
         try {
             manager.isConnected
         } catch (th: Throwable) {
-            println(th.message)
             false
         }
     }
@@ -95,7 +90,6 @@ class AdbRepository{
                 os.write("\n".toByteArray(StandardCharsets.UTF_8))
             }
         } catch (e: Exception) {
-            println(e.message)
         }
     }
 }

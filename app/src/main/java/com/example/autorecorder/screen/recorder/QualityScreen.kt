@@ -58,6 +58,7 @@ fun QualityScreen(
     var bitrate by remember { mutableStateOf(SharedPreferencesHelper.bitrate) }
     var frameRate by remember { mutableStateOf(SharedPreferencesHelper.frameRate) }
     var needBackupVideo: Boolean by remember { mutableStateOf(SharedPreferencesHelper.needBackupVideo) }
+    var splitFile: Boolean by remember { mutableStateOf(SharedPreferencesHelper.splitFile) }
     var showAlert: Boolean by remember { mutableStateOf(false) }
     var recordServiceConnected: Boolean by remember { mutableStateOf(false) }
     var liveServiceConnected: Boolean by remember { mutableStateOf(false) }
@@ -135,16 +136,31 @@ fun QualityScreen(
                     },
                 )
 
-                SwitchButton(
-                    label = "${stringResource(R.string.backup)}: ${if (needBackupVideo) stringResource(R.string.on) else stringResource(R.string.off)}",
-                    checked = needBackupVideo,
-                    onCheckChange = { needBackupVideo = it },
-                )
-                Text(
-                    text = stringResource(R.string.backup_info),
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                )
+                Column {
+                    SwitchButton(
+                        label = "${stringResource(R.string.backup)}: ${if (needBackupVideo) stringResource(R.string.on) else stringResource(R.string.off)}",
+                        checked = needBackupVideo,
+                        onCheckChange = { needBackupVideo = it },
+                    )
+                    Text(
+                        text = stringResource(R.string.backup_info),
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                    )
+                }
+
+                Column {
+                    SwitchButton(
+                        label = "${stringResource(R.string.split_file)}: ${if (splitFile) stringResource(R.string.on) else stringResource(R.string.off)}",
+                        checked = splitFile,
+                        onCheckChange = { splitFile = it },
+                    )
+                    Text(
+                        text = stringResource(if (splitFile) R.string.split_file_info else R.string.split_file_off_info),
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                    )
+                }
 
                 Text(
                     text = stringResource(R.string.volume_info),
@@ -160,6 +176,7 @@ fun QualityScreen(
                             SharedPreferencesHelper.bitrate = bitrate
                             SharedPreferencesHelper.frameRate = frameRate
                             SharedPreferencesHelper.needBackupVideo = needBackupVideo
+                            SharedPreferencesHelper.splitFile = splitFile
                             showAlert = false
                             onBackButtonClick()
                         }
@@ -185,6 +202,7 @@ fun QualityScreen(
                         SharedPreferencesHelper.bitrate = bitrate
                         SharedPreferencesHelper.frameRate = frameRate
                         SharedPreferencesHelper.needBackupVideo = needBackupVideo
+                        SharedPreferencesHelper.splitFile = splitFile
                         showAlert = false
                         if (liveServiceConnected) {
                             LiveService.exit(context)

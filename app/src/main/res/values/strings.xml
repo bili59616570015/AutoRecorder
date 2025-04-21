@@ -87,6 +87,9 @@
     <string name="quality">画质</string>
     <string name="bitrate">比特率</string>
     <string name="frame_rate">帧率</string>
+    <string name="split_file">分割视频</string>
+    <string name="split_file_info">每小时暂停再开启录制，可能会损失一秒内容</string>
+    <string name="split_file_off_info">※没有测试过有可能有Bug</string>
 
     <string name="license">开源库</string>
 

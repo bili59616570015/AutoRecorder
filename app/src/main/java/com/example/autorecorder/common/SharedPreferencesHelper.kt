@@ -69,6 +69,10 @@ object SharedPreferencesHelper {
     var advancedAdb: Boolean
         get() = sharedPreferences.getBoolean("advancedAdb", false)
         set(value) = sharedPreferences.edit().putBoolean("advancedAdb", value).apply()
+
+    var splitFile: Boolean
+        get() = sharedPreferences.getBoolean("splitFile", true)
+        set(value) = sharedPreferences.edit().putBoolean("splitFile", value).apply()
 }
 
 fun String.adbCommands(): List<String> {

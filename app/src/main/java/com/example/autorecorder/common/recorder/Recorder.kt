@@ -22,7 +22,12 @@ class Recorder(
     private val mediaProjectionManager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
     private val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, resultData)
 
-    private val muxerManager = QueuedMuxerManager(streamerName)
+//    private val muxerManager = QueuedMuxerManager(streamerName)
+    private val queuedMuxer: QueuedMuxerCallback = if (SharedPreferencesHelper.splitFile) {
+        QueuedMuxerManager(streamerName)
+    } else {
+        QueuedMuxer(streamerName)
+    }
 
     private val audioEncoder = AudioEncoder(mediaProjection, callback = this)
     private val videoEncoder = VideoEncoder(width = width, height = height, callback = this)
@@ -32,14 +37,14 @@ class Recorder(
     private var virtualDisplay: VirtualDisplay? = null
 
     override fun onFormatChanged(format: MediaFormat, type: EncoderType) {
-        muxerManager.setOutputFormat(
+        queuedMuxer.setOutputFormat(
             if (type == EncoderType.Video) QueuedMuxer.SampleType.VIDEO else QueuedMuxer.SampleType.AUDIO,
             format
         )
     }
 
     override fun onEncoded(buffer: ByteBuffer, info: MediaCodec.BufferInfo, type: EncoderType) {
-        muxerManager.writeSampleData(
+        queuedMuxer.writeSampleData(
             if (type == EncoderType.Video) QueuedMuxer.SampleType.VIDEO else QueuedMuxer.SampleType.AUDIO,
             buffer,
             info
@@ -47,7 +52,7 @@ class Recorder(
     }
 
     fun start() {
-        muxerManager.start()
+        queuedMuxer.start()
         audioEncoder.prepare()
         videoEncoder.prepare()
         virtualDisplay = mediaProjection.createVirtualDisplay(
@@ -67,11 +72,11 @@ class Recorder(
     fun stop() {
         audioEncoder.stop()
         videoEncoder.stop()
-        muxerManager.stop()
+        queuedMuxer.stop()
 
         audioEncoder.release()
         videoEncoder.release()
-        muxerManager.release()
+        queuedMuxer.release()
         virtualDisplay?.release()
         virtualDisplay = null
     }

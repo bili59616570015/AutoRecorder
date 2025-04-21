@@ -20,7 +20,7 @@ import java.nio.ByteOrder
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class QueuedMuxer(dstPrefix: String) {
+class QueuedMuxer(dstPrefix: String): QueuedMuxerCallback {
     private var mVideoFormat: MediaFormat? = null
     private var mAudioFormat: MediaFormat? = null
     private var mVideoTrackIndex = -1
@@ -47,7 +47,7 @@ class QueuedMuxer(dstPrefix: String) {
     }
 
     @Synchronized
-    fun setOutputFormat(sampleType: SampleType, format: MediaFormat) {
+    override fun setOutputFormat(sampleType: SampleType, format: MediaFormat) {
         when (sampleType) {
             SampleType.VIDEO -> {
                 if (mVideoFormat != null) return
@@ -73,7 +73,7 @@ class QueuedMuxer(dstPrefix: String) {
     }
 
     @Synchronized
-    fun writeSampleData(sampleType: SampleType, byteBuf: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
+    override fun writeSampleData(sampleType: SampleType, byteBuf: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
         // Ensure timestamps are increasing (from second version)
         when (sampleType) {
             SampleType.AUDIO -> {
@@ -157,7 +157,7 @@ class QueuedMuxer(dstPrefix: String) {
     }
 
     @Synchronized
-    fun release() {
+    override fun release() {
         try {
             if (mStarted) {
                 // Write any pending samples before stopping
@@ -178,6 +178,12 @@ class QueuedMuxer(dstPrefix: String) {
             mLastVideoTimestampUs = 0
             mLastAudioTimestampUs = 0
         }
+    }
+
+    override fun start() {
+    }
+
+    override fun stop() {
     }
 
     enum class SampleType {
@@ -206,7 +212,7 @@ class QueuedMuxer(dstPrefix: String) {
 class QueuedMuxerManager(
     private val dstPrefix: String,
     private val durationMillis: Long = 60 * 60_000L
-) {
+): QueuedMuxerCallback {
     private var currentMuxer: QueuedMuxer? = null
     private var muxerTimerJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -224,12 +230,12 @@ class QueuedMuxerManager(
         return muxer
     }
 
-    fun start() {
+    override fun start() {
         currentMuxer = createMuxer()
         scheduleNextRotation()
     }
 
-    fun stop() {
+    override fun stop() {
         muxerTimerJob?.cancel()
         currentMuxer?.release()
         currentMuxer = null
@@ -245,7 +251,7 @@ class QueuedMuxerManager(
         }
     }
 
-    fun setOutputFormat(type: QueuedMuxer.SampleType, format: MediaFormat) {
+    override fun setOutputFormat(type: QueuedMuxer.SampleType, format: MediaFormat) {
         when (type) {
             QueuedMuxer.SampleType.VIDEO -> {
                 videoFormat = format
@@ -258,12 +264,20 @@ class QueuedMuxerManager(
         currentMuxer?.setOutputFormat(type, format)
     }
 
-    fun writeSampleData(type: QueuedMuxer.SampleType, buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    override fun writeSampleData(type: QueuedMuxer.SampleType, buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
         currentMuxer?.writeSampleData(type, buffer, info)
     }
 
-    fun release() {
+    override fun release() {
         stop()
         scope.cancel()
     }
+}
+
+interface QueuedMuxerCallback {
+    fun setOutputFormat(sampleType: QueuedMuxer.SampleType, format: MediaFormat)
+    fun writeSampleData(sampleType: QueuedMuxer.SampleType, byteBuf: ByteBuffer, bufferInfo: MediaCodec.BufferInfo)
+    fun release()
+    fun start()
+    fun stop()
 }

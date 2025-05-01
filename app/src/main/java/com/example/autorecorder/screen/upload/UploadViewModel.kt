@@ -103,7 +103,7 @@ object UploadViewModel: ViewModel() {
                 }
             } ?: run {
                 _planFlow.value = (_planFlow.value ?: emptyList()).toMutableList().apply {
-                    add(plan)
+                    add(0, plan)
                 }
             }
         }

@@ -1,11 +1,15 @@
 package com.example.autorecorder.screen.home
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +46,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.autorecorder.R
@@ -56,6 +68,7 @@ import com.example.autorecorder.services.LiveService.Companion.ACTION_EXIT
 import com.example.autorecorder.services.LiveService.Companion.ACTION_START_FETCH
 import com.example.autorecorder.services.RecordService
 
+@SuppressLint("BatteryLife")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -65,6 +78,7 @@ fun HomeScreen(
     onAddStreamerClick: () -> Unit,
     onAdbClick: () -> Unit,
     onQualityClick: () -> Unit,
+    onStopFetchClick: () -> Unit,
     onPingClick: (onResult: (String) -> Unit) -> Unit,
 ) {
     val context: Context = LocalContext.current
@@ -276,6 +290,7 @@ fun HomeScreen(
                             }
                             if (fetchingLive) {
                                 LiveService.exit(context)
+                                onStopFetchClick()
                             } else {
                                 LiveService.start(context)
                             }
@@ -288,11 +303,32 @@ fun HomeScreen(
                             )
                         )
                     }
+                    val annotatedString = buildAnnotatedString {
+                        append(stringResource(R.string.start_info))
+                        val link = LinkAnnotation.Clickable(
+                            tag = "Settings",
+                            styles = TextLinkStyles(
+                                style = SpanStyle(color = Color.Blue),
+                                hoveredStyle = SpanStyle(textDecoration = TextDecoration.Underline)
+                            )
+                        ) {
+                            val intent = Intent().apply {
+                                action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                                data = Uri.fromParts("package", context.packageName, null)
+                            }
+                            context.startActivity(intent)
+                        }
+                        append(" ")
+                        withLink(link) { append(context.getString(R.string.start_info_battery_setting)) }
+                    }
                     Text(
-                        text = stringResource(R.string.start_info),
+                        text = annotatedString,
                         color = Color.Gray,
                         fontSize = 12.sp,
                         modifier = Modifier.fillMaxWidth(),
+                        style = TextStyle.Default.copy(
+                            lineHeight = 16.sp,
+                        ),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }

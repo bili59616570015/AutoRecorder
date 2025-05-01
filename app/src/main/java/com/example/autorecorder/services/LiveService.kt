@@ -52,7 +52,7 @@ class LiveService : Service() {
         when (intent?.action) {
             ACTION_START_FETCH -> {
 //                CoroutineScope(Dispatchers.IO + Job()).launch {
-//                    val item = repository.getAllItems().firstOrNull() ?: return@launch
+//                    val item = repository.getAllItems()[1] ?: return@launch
 //                    val plan = Plan.new(item) ?: return@launch
 //                    UploadViewModel.startUpload(this@LiveService, plan)
 //                }
@@ -79,7 +79,6 @@ class LiveService : Service() {
 
     private fun startFetching() {
         if (isFetching) return  // Prevent duplicate starts
-        SharedPreferencesHelper.latestRecorded = Date()
         isFetching = true
         sendStatusBroadcast(isFetching)
         serviceScope = CoroutineScope(Dispatchers.IO + Job())  // Recreate scope
@@ -113,6 +112,7 @@ class LiveService : Service() {
 
             if (room.status == 2) {
                 if (!launched) {
+                    SharedPreferencesHelper.latestRecorded = Date()
                     launched = true
                     runStartAdbCommand(room)
                     RecordService.start(this, item.name)

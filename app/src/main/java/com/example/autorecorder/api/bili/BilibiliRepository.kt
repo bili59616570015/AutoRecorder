@@ -1,6 +1,5 @@
 package com.example.autorecorder.api.bili
 
-import com.example.autorecorder.BuildConfig
 import com.example.autorecorder.common.Utils
 import com.example.autorecorder.entity.AddVideoRequest
 import com.example.autorecorder.entity.BiliAddResponse
@@ -13,11 +12,6 @@ import com.example.autorecorder.entity.Task
 import com.example.autorecorder.entity.Template
 import com.example.autorecorder.entity.VideoInfo
 import com.example.autorecorder.entity.VideoInfoRequest
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.put
@@ -30,9 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
-import okhttp3.Response
 import java.io.InputStream
-import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.time.Instant
@@ -165,31 +157,27 @@ class BilibiliRepository {
         index: Int,
         start: Long,
         end: Long,
-        task: Task
+        task: Task,
     ): Result<BiliPart> {
         val chunkSize = end - start
 
         val limitedStream = withContext(Dispatchers.IO) {
             val inputStream = task.file.inputStream()
-            val channel = inputStream.channel
-
-            // Perform blocking operations within IO context
-            channel.position(start)
-
+            inputStream.skip(start)
             object : InputStream() {
-                var remaining = chunkSize
+                private var remaining = chunkSize
 
                 override fun read(): Int {
                     if (remaining <= 0) return -1
-                    val value = inputStream.read()
-                    if (value != -1) remaining--
-                    return value
+                    val byte = inputStream.read()
+                    if (byte >= 0) remaining--
+                    return byte
                 }
 
                 override fun read(b: ByteArray, off: Int, len: Int): Int {
                     if (remaining <= 0) return -1
-                    val toRead = minOf(len.toLong(), remaining).toInt()
-                    val read = channel.read(ByteBuffer.wrap(b, off, toRead))
+                    val bytesToRead = minOf(len.toLong(), remaining).toInt()
+                    val read = inputStream.read(b, off, bytesToRead)
                     if (read > 0) remaining -= read
                     return read
                 }
@@ -200,25 +188,8 @@ class BilibiliRepository {
             }
         }
 
-        val client = HttpClient(OkHttp) {
-            install(HttpTimeout) {
-                requestTimeoutMillis = 10 * 60 * 1000L
-            }
-            install(Logging) {
-                logger = CustomHttpLogger()
-                level = if (BuildConfig.DEBUG) {
-                    LogLevel.HEADERS
-                } else {
-                    LogLevel.NONE
-                }
-            }
-            engine {
-                preconfigured = BilibiliHttpClient.uploadClient // 复用预配置的客户端
-            }
-        }
-
-        val result = retry(3) {
-            val response: HttpResponse = client.put("${BiliEndPoint.UPLOAD.url}${task.path}") {
+        val result = retry(10) {
+            val response: HttpResponse = BilibiliHttpClient.client.put("${BiliEndPoint.UPLOAD.url}${task.path}") {
                 header("X-Upos-Auth", task.auth)
                 header("User-Agent", UserAgent)
                 header("Content-Length", chunkSize)
@@ -240,11 +211,9 @@ class BilibiliRepository {
             } else {
                 Result.failure(Exception("Upload failed for part ${index + 1}: ${response.status}"))
             }
-        }.onFailure {
-            limitedStream.close()
         }
 
-        client.close()
+        limitedStream.close()
         return result
     }
 

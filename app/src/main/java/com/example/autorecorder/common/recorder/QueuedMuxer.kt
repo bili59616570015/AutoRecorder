@@ -31,11 +31,17 @@ class QueuedMuxer(dstPrefix: String): QueuedMuxerCallback {
     private var mLastAudioTimestampUs: Long = 0
     private var mLastVideoTimestampUs: Long = 0
     private var currentMuxer: MediaMuxer? = null
+    private val lock = Any()
 
     init {
-        currentMuxer?.stop()
-        currentMuxer?.release()
-        currentMuxer = MediaMuxer(getDst(dstPrefix), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+        synchronized(lock) {
+            try {
+               currentMuxer = MediaMuxer(getDst(dstPrefix), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+            } catch (e: Exception) {
+               Log.e(TAG, "Muxer initialization failed", e)
+               throw e
+            }
+        }
     }
 
     @SuppressLint("SimpleDateFormat")
@@ -158,25 +164,35 @@ class QueuedMuxer(dstPrefix: String): QueuedMuxerCallback {
 
     @Synchronized
     override fun release() {
-        try {
-            if (mStarted) {
-                // Write any pending samples before stopping
-                if (mPendingSamples.isNotEmpty()) {
-                    writePendingSamples()
+        synchronized(lock) {
+            try {
+                if (mStarted) {
+                    // Write any pending samples before stopping
+                    if (mPendingSamples.isNotEmpty()) {
+                        writePendingSamples()
+                    }
+                    try {
+                        currentMuxer?.stop()
+                    } catch (e: IllegalStateException) {
+                        Log.e(TAG, "Muxer stop failed", e)
+                    }
                 }
-                currentMuxer?.stop()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error stopping muxer", e)
+            } finally {
+                try {
+                    currentMuxer?.release()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error releasing muxer", e)
+                }
+                mPendingSamples.clear()
+                mPendingBuffer = null
+                mStarted = false
+                mVideoTrackIndex = -1
+                mAudioTrackIndex = -1
+                mLastVideoTimestampUs = 0
+                mLastAudioTimestampUs = 0
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error stopping muxer", e)
-        } finally {
-            currentMuxer?.release()
-            mPendingSamples.clear()
-            mPendingBuffer = null
-            mStarted = false
-            mVideoTrackIndex = -1
-            mAudioTrackIndex = -1
-            mLastVideoTimestampUs = 0
-            mLastAudioTimestampUs = 0
         }
     }
 
@@ -245,8 +261,15 @@ class QueuedMuxerManager(
         muxerTimerJob = scope.launch {
             while (isActive) {
                 delay(durationMillis)
-                currentMuxer?.release()
-                currentMuxer = createMuxer()
+                if (isActive) {
+                    val oldMuxer = currentMuxer
+                    currentMuxer = createMuxer()
+                    try {
+                        oldMuxer?.release()
+                    } catch (e: Exception) {
+                        Log.e("QueuedMuxer", "Error releasing old muxer", e)
+                    }
+                }
             }
         }
     }

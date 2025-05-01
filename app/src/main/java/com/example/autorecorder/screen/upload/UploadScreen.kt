@@ -88,6 +88,9 @@ fun UploadScreen(
                                 text = item.fileNames.joinToString("\n"),
                                 fontSize = 11.sp,
                                 color = Color.Gray,
+                                style = androidx.compose.ui.text.TextStyle.Default.copy(
+                                    lineHeight = 15.sp,
+                                ),
                             )
                             if (item.errorMessage.isNotBlank()) {
                                 Text(

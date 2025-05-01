@@ -46,11 +46,16 @@ class AudioEncoder(
     private val channelMask = AudioFormat.CHANNEL_IN_MONO
 
     private val audioBufferSizeInBytes by lazy {
-        AudioRecord.getMinBufferSize(
+       val size = AudioRecord.getMinBufferSize(
             SAMPLE_RATE,
-            channelCount,
+            channelMask,
             AudioFormat.ENCODING_PCM_16BIT
         )
+        if (size <= 0) {
+            Log.e(TAG, "Invalid buffer size: $size")
+            throw IllegalStateException("Cannot init AudioRecord")
+        }
+        size
     }
 
     private val audioPlayback by lazy {
@@ -64,7 +69,11 @@ class AudioEncoder(
                     .build()
             )
             .setBufferSizeInBytes(audioBufferSizeInBytes)
-            .build()
+            .build().also {
+                if (it.state != AudioRecord.STATE_INITIALIZED) {
+                    Log.e(TAG, "AudioRecord not initialized!")
+                }
+            }
     }
 
     private val format by lazy {
@@ -91,15 +100,26 @@ class AudioEncoder(
     override fun start() {
         synchronized(releaseLock) {
             if (isEncoding) {
-                Log.w(TAG, "already starting.")
+                Log.w(TAG, "start() called but already started. Ignoring.")
                 return
             }
-            isEncoding = true
-
-            audioPlayback.startRecording()
-            codec.start()
-            recordJob = record()
-            drainJob = drain()
+            try {
+                isEncoding = true
+                audioPlayback.startRecording()
+                codec.start()
+                recordJob = record()
+                drainJob = drain()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error starting AudioEncoder", e)
+                isEncoding = false
+                // Make sure if error happens, we clean up
+                try {
+                    audioPlayback.stop()
+                } catch (_: Exception) { }
+                try {
+                    codec.stop()
+                } catch (_: Exception) { }
+            }
         }
     }
 

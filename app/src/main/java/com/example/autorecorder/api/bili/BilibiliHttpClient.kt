@@ -7,7 +7,12 @@ import com.example.autorecorder.entity.BiliErrorResponse
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import kotlinx.coroutines.delay
 import okhttp3.ConnectionPool
 import okhttp3.Interceptor
@@ -25,6 +30,23 @@ const val AppSecret = "59b43e04ad6965f34319062b478f83dd"
 const val UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/63.0.3239.108"
 
 object BilibiliHttpClient {
+
+    val client = HttpClient(OkHttp) {
+        install(HttpTimeout) {
+            requestTimeoutMillis = 10 * 60 * 1000L
+        }
+        install(Logging) {
+            logger = CustomHttpLogger()
+            level = if (BuildConfig.DEBUG) {
+                LogLevel.INFO
+            } else {
+                LogLevel.NONE
+            }
+        }
+        engine {
+            preconfigured = BilibiliHttpClient.uploadClient // 复用预配置的客户端
+        }
+    }
     val uploadClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
@@ -79,21 +101,14 @@ class CustomHttpLogger(): Logger {
 
 suspend fun <T> retry(
     times: Int = 3,
-    initialDelay: Long = 100,
-    maxDelay: Long = 1000,
-    factor: Double = 2.0,
+    delayMillis: Long = 3000,
     block: suspend () -> Result<T>
 ): Result<T> {
-    var currentDelay = initialDelay
-    var result: Result<T>
-
     repeat(times - 1) {
-        result = block()
+        val result = block()
         if (result.isSuccess) return result
-        delay(currentDelay)
-        currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
+        delay(delayMillis)
     }
-
     return block()
 }
 

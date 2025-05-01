@@ -24,7 +24,7 @@ data class Template(
     val watermark: Int = 1, // 1-开启 0-关闭
     val isOnlySelf: Int = 0, // 0-所有 1-仅自己
 //    val recreate: Int = -1, // -1-不允许 1-允许
-    val noReprint: Int = 0, // 0-允许转载 1-禁止转载
+    val noReprint: Int = 1, // 0-允许转载 1-禁止转载
 ): Serializable {
     val entity: TemplateEntity
         get() = TemplateEntity(

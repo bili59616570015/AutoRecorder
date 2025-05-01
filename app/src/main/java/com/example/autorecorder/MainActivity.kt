@@ -3,7 +3,7 @@ package com.example.autorecorder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,13 +16,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.autorecorder.common.notification.NotificationHelper
 import com.example.autorecorder.common.Utils
+import com.example.autorecorder.common.notification.NotificationHelper
 import com.example.autorecorder.entity.Streamer
 import com.example.autorecorder.entity.Template
 import com.example.autorecorder.screen.adb.AdbHelpScreen
@@ -49,6 +50,8 @@ import com.example.autorecorder.screen.up.UpViewModel
 import com.example.autorecorder.screen.upload.UploadScreen
 import com.example.autorecorder.screen.upload.UploadViewModel
 import com.example.autorecorder.ui.theme.AutoRecorderTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.reflect.typeOf
@@ -64,8 +67,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        applicationContext.getExternalFilesDir(Environment.DIRECTORY_MOVIES) // create folder if not exists
-        Utils.initRecordFolder()
+        if (BuildConfig.DEBUG) {
+            Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+                Log.e("CrashHandler", "Unhandled exception in ${thread.name}", throwable)
+            }
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            Utils.initRecordFolder()
+        }
 
         val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             arrayOf(android.Manifest.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION,)
@@ -76,6 +85,7 @@ class MainActivity : ComponentActivity() {
         } + arrayOf(
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             android.Manifest.permission.RECORD_AUDIO,
+            android.Manifest.permission.WAKE_LOCK,
         )
         ActivityCompat.requestPermissions(this, permissions, 0)
 
@@ -113,6 +123,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onQualityClick = {
                                 navController.navigate(QualityScreen)
+                            },
+                            onStopFetchClick = {
+                                homeViewModel.onStopFetchLiveClick()
                             },
                             onPingClick = homeViewModel::onPingClick
                         )

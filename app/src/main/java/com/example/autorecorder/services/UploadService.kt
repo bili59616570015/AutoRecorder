@@ -8,6 +8,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.example.autorecorder.R
 import com.example.autorecorder.adb.AdbRepository
@@ -28,9 +29,16 @@ class UploadService : Service() {
     private lateinit var repository: StreamerRepository
     private lateinit var adbRepository: AdbRepository
     private val useCase = BilibiliUseCase()
+    private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onCreate() {
         super.onCreate()
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            "MyApp::UploadWakeLock"
+        )
+        wakeLock?.acquire(60*60*1000L /*60 minutes*/) // Keep CPU on
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         repository = StreamerRepository()
         adbRepository = AdbRepository()
@@ -42,6 +50,14 @@ class UploadService : Service() {
                 }
             }
         }
+        CoroutineScope(Dispatchers.IO + Job()).launch {
+            UploadViewModel.runningList.collectLatest { list ->
+                if (list.isEmpty()) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
+                }
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -49,7 +65,7 @@ class UploadService : Service() {
             "CANCEL_UPLOAD" -> {
                 val id = intent.getStringExtra("planId") ?: return START_STICKY
                 UploadViewModel.cancelUpload(id)
-                stopSelf(startId)
+                cancelNotification(id)
                 return START_NOT_STICKY
             }
             "START_UPLOAD" -> {
@@ -60,7 +76,6 @@ class UploadService : Service() {
                 val serviceScope = CoroutineScope(Dispatchers.IO + job)
                 serviceScope.launch {
                     startUpload(plan)
-                    stopSelf(startId)
                 }
                 return START_NOT_STICKY
             }
@@ -81,6 +96,7 @@ class UploadService : Service() {
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
+            cancelNotification(plan.id)
             UploadViewModel.removeUpload(plan.id)
         }
     }
@@ -88,6 +104,11 @@ class UploadService : Service() {
     private fun updateNotification(progress: Int, notificationId: Int) {
         val notification = createNotification(progress)
         notificationManager.notify(notificationId, notification)
+    }
+
+    private fun cancelNotification(planId: String) {
+        val notificationId = UploadViewModel.runningFlow.value[planId]?.second ?: return
+        notificationManager.cancel(notificationId)
     }
 
     private fun createNotification(progress: Int): Notification {
@@ -117,6 +138,7 @@ class UploadService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         isRunning = false
+        if (wakeLock?.isHeld == true) wakeLock?.release() // Release to save battery
     }
 
     private val CHANNEL_ID = "upload_service_channel"

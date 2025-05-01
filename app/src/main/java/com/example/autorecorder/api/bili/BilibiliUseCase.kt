@@ -15,7 +15,6 @@ import com.example.autorecorder.entity.Task
 import com.example.autorecorder.entity.Template
 import com.example.autorecorder.entity.VideoInfo
 import com.example.autorecorder.screen.upload.UploadViewModel
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -39,7 +38,7 @@ class BilibiliUseCase {
         item: Plan
     ) {
         var plan = item.copy(errorMessage = "")
-        retry(3) {
+        retry(3, 60_000) {
             try {
                 val template = templateRepository.getItem(plan.templateTitle)
                     ?: throw Exception("Template not found")
@@ -142,9 +141,9 @@ class BilibiliUseCase {
         }
     }
 
-    private suspend fun uploadStream(plan: Plan): List<VideoInfo> = withContext(Dispatchers.IO) {
+    private suspend fun uploadStream(plan: Plan) = withContext(Dispatchers.IO) {
         val tasks = taskRepository.getItems(listOf(plan.id))
-        tasks.map { item ->
+        tasks.forEach { item ->
             val partResponse = tryUploadStream(item)
             try {
                 repository.endUpload(
@@ -156,15 +155,11 @@ class BilibiliUseCase {
                 )
             } catch (e: HttpException) {
                 if (e.code() == 400) {
-                    // maybe already called endUpload
+                    // maybe already uploaded
                 } else {
                     throw e
                 }
             }
-            VideoInfo(
-                title = item.fileName.substringBeforeLast("."),
-                filename = item.path.substringAfter("/").substringBeforeLast(".")
-            )
         }
     }
 
@@ -178,40 +173,37 @@ class BilibiliUseCase {
         task.partNumbers.forEach {
             results.add(Result.success(BiliPart(it)))
         }
+        val allPartNumbers = (1..task.chunksNum).toList()
+        val partsToUpload = allPartNumbers.filter { partNumber ->
+            !task.partNumbers.contains(partNumber)
+        }
+
         val mutex = Mutex()
         coroutineScope {
-            val deferredResults = mutableListOf<Deferred<Boolean>>()
-            for (index in 0 until task.chunksNum) {
-                semaphore.acquire()
-                val currentIndex = index
+            partsToUpload.map { partNumber ->
+                val index = partNumber - 1
                 val start = index * task.chunkSize
                 val end = minOf(start + task.chunkSize, totalSize)
-                if (BuildConfig.DEBUG) {
-                    println("Processing part ${currentIndex + 1} of ${task.chunksNum} ($start-$end) / $totalSize")
-                }
-                val deferred = async {
-                    if (task.partNumbers.contains(currentIndex + 1)) {
-                        if (BuildConfig.DEBUG) {
-                            println("Skipping part ${currentIndex + 1}")
-                        }
-                        semaphore.release()
-                        return@async true
+                async {
+                    semaphore.acquire()
+                    if (BuildConfig.DEBUG) {
+                        println("Processing part ${partNumber} of ${task.chunksNum} ($start-$end) / $totalSize")
                     }
                     try {
                         val result = repository.uploadChunkWithKtor(
-                            index = currentIndex,
+                            index = index,
                             start = start,
                             end = end,
-                            task = task
+                            task = task,
                         )
                         mutex.withLock {
                             results.add(result)
+                            val newTask = task.copy(
+                                partNumbers = results.mapNotNull { it.getOrNull()?.partNumber }
+                            )
+                            taskRepository.upsertItem(newTask)
+                            UploadViewModel.updateTasks(newTask)
                         }
-                        val newTask = task.copy(
-                            partNumbers = results.mapNotNull { it.getOrNull()?.partNumber }
-                        )
-                        taskRepository.upsertItem(newTask)
-                        UploadViewModel.updateTasks(newTask)
                         true
                     } catch (e: Exception) {
                         if (BuildConfig.DEBUG) {
@@ -222,9 +214,10 @@ class BilibiliUseCase {
                         semaphore.release()
                     }
                 }
-                deferredResults.add(deferred)
-            }
-            deferredResults.awaitAll()
+            }.awaitAll()
+        }
+        if (results.map { it.getOrNull()?.partNumber }.size != task.chunksNum) {
+            throw Exception("Upload failed")
         }
         results
     }

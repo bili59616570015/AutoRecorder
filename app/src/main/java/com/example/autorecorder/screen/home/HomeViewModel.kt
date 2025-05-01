@@ -57,6 +57,21 @@ class HomeViewModel: ViewModel() {
         }
     }
 
+    fun onStopFetchLiveClick() {
+        viewModelScope.launch {
+            kotlin.runCatching {
+                adbRepository.disconnect()
+                _uiState.update {
+                    (it ?: HomeUiState()).copy(
+                        adbConnected = false,
+                    )
+                }
+            }.onFailure { error ->
+
+            }
+        }
+    }
+
     fun onTestCommandClick(command: String) {
         viewModelScope.launch {
             val adbCommands = command.adbCommands()

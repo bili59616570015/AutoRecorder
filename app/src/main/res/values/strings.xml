@@ -46,7 +46,8 @@
     <string name="record_message">更改录制设置将停止录制，是否要保存更改？</string>
     <string name="cdn">上传CDN</string>
     <string name="start_fetch">开启</string>
-    <string name="start_info">推荐充电使用</string>
+    <string name="start_info">推荐充电使用，并关闭本app和抖音app的优化电池使用(防止被杀后台)</string>
+    <string name="start_info_battery_setting">前往设置</string>
     <string name="stop_fetch">停止</string>
     <string name="require_adb">请先连接ADB</string>
     <string name="require_record">请先连接录制</string>

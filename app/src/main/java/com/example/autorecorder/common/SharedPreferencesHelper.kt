@@ -46,7 +46,7 @@ object SharedPreferencesHelper {
         set(value) = sharedPreferences.edit().putInt("quality", value.width).apply()
 
     var bitrate: Int
-        get() = sharedPreferences.getInt("bitrate", 4)
+        get() = sharedPreferences.getInt("bitrate", 8)
         set(value) = sharedPreferences.edit().putInt("bitrate", value).apply()
 
     val bitrateList: List<Int>

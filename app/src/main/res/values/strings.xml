@@ -85,8 +85,9 @@
     <string name="backup">备份</string>
     <string name="backup_info">上传完成后，备份开启时会将视频移至录制>备份文件夹，备份关闭时会删除视频。</string>
     <string name="volume_info">友情提示：关闭音量也会录制声音哦</string>
-    <string name="quality">画质</string>
+    <string name="quality">分辨率</string>
     <string name="bitrate">比特率</string>
+    <string name="bitrate_info">越高画质越好文件越大</string>
     <string name="frame_rate">帧率</string>
     <string name="split_file">分割视频</string>
     <string name="split_file_info">每小时暂停再开启录制，可能会损失一秒内容</string>

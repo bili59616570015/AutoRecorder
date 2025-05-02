@@ -116,15 +116,22 @@ fun QualityScreen(
                     },
                 )
 
-                DropdownSelector(
-                    label = stringResource(R.string.bitrate),
-                    options = SharedPreferencesHelper.bitrateList.map { "${it}Mbps" },
-                    modifier = Modifier.fillMaxWidth(),
-                    selectedOption = bitrate.toString(),
-                    onSelect = { item ->
-                        bitrate = item?.substringBefore("Mbps")?.toInt() ?: 4
-                    },
-                )
+                Column {
+                    DropdownSelector(
+                        label = stringResource(R.string.bitrate),
+                        options = SharedPreferencesHelper.bitrateList.map { "${it}Mbps" },
+                        modifier = Modifier.fillMaxWidth(),
+                        selectedOption = bitrate.toString(),
+                        onSelect = { item ->
+                            bitrate = item?.substringBefore("Mbps")?.toInt() ?: 4
+                        },
+                    )
+                    Text(
+                        text = stringResource(R.string.bitrate_info),
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                    )
+                }
 
                 DropdownSelector(
                     label = stringResource(R.string.frame_rate),

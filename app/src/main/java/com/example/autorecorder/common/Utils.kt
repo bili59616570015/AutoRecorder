@@ -102,13 +102,13 @@ object Utils {
     fun getRecorderFiles(): List<File> {
         val filesDir = getDir(FILES_FOLDER)
         val files = filesDir.listFiles() ?: return emptyList()
-        return files.map { it }
+        return files.sortedBy { it.lastModified() }
     }
 
     fun getBackupFiles(): List<File> {
         val backupDir = getDir(BACKUP_FOLDER)
         val files = backupDir.listFiles() ?: return emptyList()
-        return files.map { it }
+        return files.sortedBy { it.lastModified() }
     }
 
     fun getDir(folder: String): File {

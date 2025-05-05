@@ -77,7 +77,7 @@ interface BiliUploadService {
         @Query("profile") profile: String = "ugcupos/bup",
         @Query("output") output: String = "json",
         @Body request: VideoInfoRequest,
-    ): Response<Void>
+    )
 
     // member
     @POST("x/vu/app/add")

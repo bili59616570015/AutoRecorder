@@ -125,6 +125,9 @@ inline fun <reified T> String.fromJson(): T = gson.fromJson(this, T::class.java)
 class ErrorInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalResponse = chain.proceed(chain.request())
+        if (!originalResponse.isSuccessful) {
+            return originalResponse // Already an error response
+        }
         val responseBody = originalResponse.body.string()
 
         return try {

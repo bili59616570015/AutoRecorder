@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody
+import retrofit2.Response
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -109,7 +110,7 @@ class BilibiliRepository {
     suspend fun endUpload(
         task: Task
     ) {
-        BilibiliHttpClient.uploadService(BiliEndPoint.UPLOAD).endUpload(
+       BilibiliHttpClient.uploadService(BiliEndPoint.UPLOAD).endUpload(
             auth = task.auth,
             path = task.path,
             name = task.fileName,
